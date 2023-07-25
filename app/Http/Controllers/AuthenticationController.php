@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class AuthenticationController extends Controller
 {
@@ -34,9 +35,12 @@ class AuthenticationController extends Controller
             );
             return response()->json(['status' => 'success', 'message' => 'User Registration Successful'], 201);
 
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             // Handle other exceptions
-            return response()->json(['status' => 'failed', 'message' => 'Registration failed']);
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Registration failed'
+            ]);
         }
     }
 
@@ -51,19 +55,32 @@ class AuthenticationController extends Controller
         try {
             $user = User::where('email', $request->email)->first();
             if (!$user) {
-                return response()->json(['status' => 'Invalid', 'message' => 'Invalid Credentials'], 401);
+                return response()->json([
+                    'status' => 'Invalid',
+                    'message' => 'Invalid Credentials'
+                ], 401);
             }
 
             if (Hash::check($request->password, $user->password)) {
                 $token = JWT_TOKEN::create_token($user->email, $user->id);
-                return response()->json(['status' => 'success', 'message' => 'Login Successful', 'token' => $token], 200);
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Login Successful',
+                    'token' => $token
+                ], 200);
             } else {
-                return response()->json(['status' => 'Invalid', 'message' => 'Invalid Credentials'], 401);
+                return response()->json([
+                    'status' => 'Invalid',
+                    'message' => 'Invalid Credentials'
+                ], 401);
             }
 
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             // Handle other exceptions
-            return response()->json(['status' => 'Failed', 'message' => 'Something went wrong'], 500);
+            return response()->json([
+                'status' => 'Failed',
+                'message' => 'Something went wrong'
+            ], 500);
         }
     }
 
@@ -92,7 +109,7 @@ class AuthenticationController extends Controller
 
             return response()->json(['status' => 'success', 'message' => "6 digit otp code send this {$email} email. Please check your mail"], 200);
 
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             // Handle other exceptions
             return response()->json(['status' => 'Failed', 'message' => 'Something went Wrong'], 500);
         }
@@ -130,7 +147,7 @@ class AuthenticationController extends Controller
             $reset_token = JWT_TOKEN::reset_token($email);
             return response()->json(['status' => 'success', 'message' => "Your Otp verify Successfully", 'token' => $reset_token], 200); //expired after 5 minutes
 
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             // Handle other exceptions
             return response()->json(['status' => 'Failed', 'message' => 'Unauthorized'], 500);
         }
@@ -159,7 +176,7 @@ class AuthenticationController extends Controller
             User::where('email', $email)->update(['password' => Hash::make($request->password)]);
             return response()->json(['status' => 'success', 'message' => 'Password Update Successfully'], 200);
 
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             // Handle other exceptions
             // return response()->json( ['status' => 'Failed', 'message' => 'Unauthorized'], 500 );
             return response()->json(['status' => 'Failed', 'message' => $th->getMessage()], 500);
